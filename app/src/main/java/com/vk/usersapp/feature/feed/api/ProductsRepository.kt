@@ -13,9 +13,23 @@ class ProductsRepository {
         ).products
     }
 
-    suspend fun getTotal(limit:Int = 30, skip:Int = 0): Int =
-        api.getProducts(
+    suspend fun getTotal(query: String, limit:Int = 30, skip:Int = 0): Int =
+        if (query.isNotEmpty())
+            api.searchProducts(
+                query = query,
+                limit = limit,
+                skip=skip
+            ).total
+        else api.getProducts(
             limit = limit,
             skip = skip
         ).total
+
+    suspend fun searchProducts(query: String, skip:Int = 0): List<Product> {
+        return api.searchProducts(
+            query = query,
+            limit = 30,
+            skip = skip
+        ).products
+    }
 }

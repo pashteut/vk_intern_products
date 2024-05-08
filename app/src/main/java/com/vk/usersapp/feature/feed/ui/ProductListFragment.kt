@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.view.isVisible
@@ -103,6 +102,7 @@ class ProductListFragment : Fragment() {
                 } else {
                     errorView.isVisible = false
                     recycler.isVisible = true
+                    //if(feature?.viewStateFlow?.value is ProductListViewState.List)
                     adapter.setUsers(viewState.itemsList)
                 }
             }

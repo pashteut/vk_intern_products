@@ -12,16 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// MVI:
-//         Action                 patch, state                  newState                            viewState
-// View ------------> Feature -----------------> reducer ------------------------> Feature --------------------------> view
-//          ^            |
-//          |            |
-//          | Action     |  sideEffect
-//          |            |
-//          |            v
-//          |-------- Feature
-
 class ProductListFeature : MVIFeature, ViewModel() {
     private val mutableViewStateFlow = MutableStateFlow<ProductListViewState>(ProductListViewState.Loading)
     val viewStateFlow: StateFlow<ProductListViewState> = mutableViewStateFlow.asStateFlow()
@@ -59,13 +49,16 @@ class ProductListFeature : MVIFeature, ViewModel() {
         state = state.copy(isLoadingMore = true)
         viewModelScope.launch {
             try {
-                val users = withContext(Dispatchers.IO) {
-                    productsRepository.getProducts(skip=state.loadedCount)
+                val products = withContext(Dispatchers.IO) {
+                    if (state.query.isBlank()) {
+                        productsRepository.getProducts(skip=state.items.size)
+                    } else {
+                        productsRepository.searchProducts(state.query, skip=state.items.size)
+                    }
                 }
-                state = state.copy(loadedCount = state.loadedCount + users.size)
-                submitAction(ProductsListAction.UsersLoaded(users))
+                submitAction(ProductsListAction.UsersLoaded(state.items + products))
             } catch (e: Exception) {
-                Log.e("DIMAA", e.toString())
+                Log.e("Error", e.toString())
                 submitAction(ProductsListAction.LoadError(e.message ?: "FATAL"))
             }
         }
@@ -88,19 +81,23 @@ class ProductListFeature : MVIFeature, ViewModel() {
     private fun loadUsers(query: String) {
         viewModelScope.launch {
             try {
-                val users = withContext(Dispatchers.IO) {
-                    productsRepository.getProducts()
+                val products = withContext(Dispatchers.IO) {
+                    if (state.query.isBlank()) {
+                        productsRepository.getProducts()
+                    } else {
+                        productsRepository.searchProducts(state.query)
+                    }
                 }
-                state = state.copy(total = productsRepository.getTotal(), loadedCount = users.size)
-                submitAction(ProductsListAction.UsersLoaded(users))
+                state = state.copy(total = productsRepository.getTotal(query))
+                submitAction(ProductsListAction.UsersLoaded(products))
             } catch (e: Exception) {
-                Log.e("DIMAA", e.toString())
+                Log.e("Error", e.toString())
                 submitAction(ProductsListAction.LoadError(e.message ?: "FATAL"))
             }
         }
     }
 
     fun isAllUsersLoaded(): Boolean {
-        return state.loadedCount >= state.total
+        return state.items.size >= state.total
     }
 }

@@ -11,9 +11,9 @@ class ProductListAdapter : Adapter<ProductListItemVh>() {
     private val dataset: MutableList<Product> = mutableListOf()
 
     fun setUsers(products: List<Product>) {
-        val index = dataset.size
+        dataset.clear()
         dataset.addAll(products)
-        notifyItemRangeInserted(index, products.size)
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductListItemVh {

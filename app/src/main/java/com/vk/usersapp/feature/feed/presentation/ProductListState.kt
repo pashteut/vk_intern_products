@@ -7,7 +7,6 @@ data class ProductListState(
     val items: List<Product> = emptyList(),
     val error: String? = null,
     val isLoading: Boolean = true,
-    val loadedCount: Int = 0,
     val isLoadingMore: Boolean = false,
     val total: Int = 0
 )
